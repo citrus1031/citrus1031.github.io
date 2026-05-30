@@ -1,43 +1,38 @@
-// Mobile Menu Toggle
+// Portfolio Website JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // Set current year in footer
     document.getElementById('year').textContent = new Date().getFullYear();
     
-    // Add animation classes to elements on scroll
-    const fadeElements = document.querySelectorAll('.fade-in-up');
+    // Theme toggle functionality
+    const themeToggleCheckbox = document.getElementById('theme-toggle-checkbox');
+    const htmlElement = document.documentElement;
     
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in-up-active');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-    
-    fadeElements.forEach((element, index) => {
-        element.classList.add(`delay-${index}`);
-        observer.observe(element);
-    });
-    
-    // Simple form submission handling (for demo)
-    const contactForm = document.querySelector('.contact-form form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for your message! I will get back to you soon.');
-            contactForm.reset();
-        });
+    // Check for saved theme preference or use system preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        htmlElement.setAttribute('data-theme', savedTheme);
+        themeToggleCheckbox.checked = savedTheme === 'dark';
+    } else {
+        // Check system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        htmlElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        themeToggleCheckbox.checked = prefersDark;
     }
+    
+    // Theme toggle event listener
+    themeToggleCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            htmlElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            htmlElement.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+        }
+    });
     
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
+        anchor.addEventListener('click', function(e) {
             e.preventDefault();
             
             const targetId = this.getAttribute('href');
@@ -53,27 +48,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Active nav link on scroll
-    const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    window.addEventListener('scroll', () => {
-        let current = '';
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
+    // Form submission handling
+    const contactForm = document.querySelector('.contact-form form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            if (pageYOffset >= sectionTop - 100) {
-                current = section.getAttribute('id');
+            // Get form values
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            
+            // Here you would typically send data to a backend service
+            // For now, we'll show an alert and reset the form
+            alert(`Thank you ${name}! Your message has been sent.`);
+            this.reset();
+        });
+    }
+    
+    // Add animation classes to elements on scroll
+    const animateOnScroll = function() {
+        const elements = document.querySelectorAll('.fade-in-up');
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementVisible = 150;
+            
+            if (elementTop < window.innerHeight - elementVisible) {
+                element.classList.add('active');
             }
         });
-        
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href').substring(1) === current) {
-                link.classList.add('active');
-            }
-        });
-    });
+    };
+    
+    // Run on load and scroll
+    window.addEventListener('load', animateOnScroll);
+    window.addEventListener('scroll', animateOnScroll);
+    
+    // Add security headers meta tag (for information only, actual headers need server config)
+    // This is just to show awareness of security - actual implementation requires server-side
+    const meta = document.createElement('meta');
+    meta.httpEquiv = 'Content-Security-Policy';
+    meta.content = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'";
+    document.head.appendChild(meta);
 });
